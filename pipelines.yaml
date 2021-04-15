@@ -44,7 +44,7 @@ pipelines:
             - mvn --version
           onComplete:
            - ls -lR
-           - add_cache_files ./dependencyState/resources/demo_be_gitRepo/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/java-backend/target/backend-1.0.0.jar myfile
+           - add_run_files $res_demo_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/java-backend/target/backend-1.0.0.jar myfile
 
       - name: bld_docker_image
         type: DockerBuild
@@ -63,7 +63,7 @@ pipelines:
             - name: bld_backend
         execution:
           onStart:
-           - restore_cache_files myfile server.jar
+           - restore_run_files myfile $res_demo_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/docker/server.jar
            - ls -lR
           onComplete:
             - echo $step_env_var2
