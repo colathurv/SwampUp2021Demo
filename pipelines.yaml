@@ -71,7 +71,7 @@ pipelines:
           forceXrayScan: false
           autoPublishBuildInfo: true
           integrations:
-            - name: GITHUB_INT
+            - name: ARTFY_INT
           inputSteps:
             - name: bld_docker_image
           outputResources:
