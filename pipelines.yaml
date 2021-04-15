@@ -43,8 +43,8 @@ pipelines:
             - javac -version
             - mvn --version
           onComplete:
-           - ls -lR
-           - add_run_files myfile backend-1.0.0.jar
+           - ls -lR *.jar
+           - add_run_files ./dependencyState/resources/demo_be_gitRepo/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/java-backend/target/backend-1.0.0.jar myfile
 
       - name: bld_docker_image
         type: DockerBuild
@@ -63,7 +63,7 @@ pipelines:
             - name: bld_backend
         execution:
           onStart:
-           - restore_run_files myfile backend-1.0.0.jar
+           - restore_run_files myfile server.jar
            - ls -lR
           onComplete:
             - echo $step_env_var2
