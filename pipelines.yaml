@@ -42,6 +42,8 @@ pipelines:
           onStart:
             - javac -version
             - mvn --version
+          onComplete:
+           - add_run_files myfile server.jar
 
       - name: bld_docker_image
         type: DockerBuild
@@ -59,6 +61,8 @@ pipelines:
           inputSteps:
             - name: bld_backend
         execution:
+          onStart:
+           - restore_run_files myfile server.jar
           onComplete:
             - echo $step_env_var2
             - echo "Running $pipeline_name | $step_name on node ID $step_node_id"
