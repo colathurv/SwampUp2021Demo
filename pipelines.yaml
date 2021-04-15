@@ -52,7 +52,7 @@ pipelines:
           affinityGroup: bldGroup
           dockerFileLocation: SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/docker
           dockerFileName: BE-Dockerfile
-          dockerImageName: vjnpipelines.jfrog.io/docker-template-local/app-backend
+          dockerImageName: vjnpipelines.jfrog.io/docker-demo-local/app-backend
           dockerImageTag: '${run_number}'
           integrations:
             - name: ARTFY_INT
@@ -73,7 +73,7 @@ pipelines:
         type: DockerPush
         configuration:
           affinityGroup: bldGroup
-          targetRepository: docker-template-local
+          targetRepository: docker-demo-local
           forceXrayScan: false
           autoPublishBuildInfo: true
           integrations:
