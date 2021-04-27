@@ -42,6 +42,9 @@ pipelines:
           onStart:
             - javac -version
             - mvn --version
+          onComplete:
+           - ls -lR
+           - add_run_files $res_demo_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/java-backend/target/backend-1.0.0.jar myfile
 
       - name: bld_docker_image
         type: DockerBuild
@@ -49,18 +52,19 @@ pipelines:
           affinityGroup: bldGroup
           dockerFileLocation: SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/docker
           dockerFileName: BE-Dockerfile
-          dockerImageName: vjnpipelines.jfrog.io/docker-template-local/app-backend
+          dockerImageName: vjnpipelines.jfrog.io/docker-demo-local/app-backend
           dockerImageTag: '${run_number}'
           integrations:
             - name: ARTFY_INT
           inputResources:
             - name: demo_be_gitRepo
               trigger: false
-          outputResources:
-            - name: BackendServerDockerImage
           inputSteps:
             - name: bld_backend
         execution:
+          onStart:
+           - restore_run_files myfile $res_demo_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/docker/server.jar
+           - ls -lR
           onComplete:
             - echo $step_env_var2
             - echo "Running $pipeline_name | $step_name on node ID $step_node_id"
@@ -69,11 +73,11 @@ pipelines:
         type: DockerPush
         configuration:
           affinityGroup: bldGroup
-          targetRepository: docker-template-local
+          targetRepository: docker-demo-local
           forceXrayScan: false
           autoPublishBuildInfo: true
           integrations:
-            - name: GITHUB_INT
+            - name: ARTFY_INT
           inputSteps:
             - name: bld_docker_image
           outputResources:
