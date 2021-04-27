@@ -1,0 +1,80 @@
+resources:
+  - name: {{ .Values.Resource1.name }}
+    type: GitRepo
+    configuration:
+      path: {{ .Values.Resource1.path }} # <-- PREREQ: Fork current github repository to your github organization and mention fullpath of your forked Repository
+      gitProvider: {{ .Values.GitProviderInt }}
+      files:
+         # To ensure that only file changes in this sub-directoty triggers a run
+        include: {{ .Values.Resource1.include }}
+        
+  - name: {{ .Values.Resource2.name }}
+    type: BuildInfo
+    configuration:
+      sourceArtifactory: {{ .Values.ArtifactoryInt }}
+      buildName: {{ .Values.Resource2.name }}
+      buildNumber: 1
+
+pipelines:
+  - name: {{ .Values.Pipelines.name }}
+    steps:
+      - name: {{ .Values.Step1.name }}
+        type: MvnBuild
+        configuration:
+          sourceLocation: {{ .Values.Step1.sourceLocation }}
+          mvnCommand: clean install -ntp
+          resolverSnapshotRepo: libs-snapshot-virtual
+          resolverReleaseRepo: libs-staging-virtual # <-- PREREQ: Create 3 maven repositories: libs-staging-local (type LOCAL), libs-staging-remote (type REMOTE) and libs-staging-virtual(type VIRTUAL). Have libs-staging-virtual aggregate the local and remote, in that order.  
+          deployerSnapshotRepo: libs-demo-snapshot-local
+          deployerReleaseRepo: libs-demo-release-local
+          inputResources:
+            - name: {{ .Values.Resource1.name }}
+          integrations:
+            - name: {{ .Values.ArtifactoryInt }}
+          runtime:
+            type: image
+            image:
+              auto:
+                language: java
+                versions:
+                  - "11"
+        execution:
+          onStart:
+            - javac -version
+            - mvn --version
+
+      - name: {{ .Values.Step2.name }}
+        type: DockerBuild
+        configuration:
+          affinityGroup: {{ .Values.affinityGroup }}   
+          dockerFileLocation: {{ .Values.Step2.dockerFileLocation }}  
+          dockerFileName: {{ .Values.Step2.dockerFileName }}
+          dockerImageName: {{ .Values.Step2.dockerImageName }}
+          dockerImageTag: '${run_number}'
+          integrations:
+            - name: {{ .Values.ArtifactoryInt }}
+          inputResources:
+            - name: {{ .Values.Resource1.name }}
+              trigger: false
+          outputResources:
+            - name: {{ .Values.Step2.outputResources }}
+          inputSteps:
+            - name: {{ .Values.Step1.name }}
+        execution:
+          onComplete:
+            - echo $step_env_var2
+            - echo "Running $pipeline_name | $step_name on node ID $step_node_id"
+      
+      - name: {{ .Values.Step3.name }}
+        type: DockerPush
+        configuration:
+          affinityGroup: {{ .Values.affinityGroup }}
+          targetRepository: docker-template-local
+          forceXrayScan: false
+          autoPublishBuildInfo: true
+          integrations:
+            - name: {{ .Values.GitProviderInt }}
+          inputSteps:
+            - name: {{ .Values.Step2.name }}
+          outputResources:
+            - name: {{ .Values.Resource2.name }}
