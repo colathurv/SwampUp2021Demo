@@ -1,23 +1,17 @@
 GitRepo:
   name : Name of your GitHub Resource
   path : Path to GitHub Repo
-  files:
-    include : Files to be included
 BuildInfo:
   name : Name for your build Info Resource
   buildName : Name for your build info
 ArtifactoryInt : Integration Name of Artifactory
 GitProviderInt : Integration Name of Git Provider
-affinityGroup: Name of the Affinity Group
 Pipelines:
   name: Name of your pipeline
 MvnBuild :
   name: Name of the Maven Build Step
-  sourceLocation : Path to your Maven Source Code
 DockerBuild:
   name: Name of the DockerBuild Step
-  dockerFileLocation: Location of Dockerfile in Source Repo
-  dockerFileName : Name of your Dockerfile
   dockerImageName: Name of your Docker Image
 DockerPush:
   name: Name of the DockerPush Step
