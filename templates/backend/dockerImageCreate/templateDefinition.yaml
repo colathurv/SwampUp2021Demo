@@ -1,34 +1,34 @@
 resources:
-  - name: {{ .Values.Resource1.name }}
+  - name: {{ .Values.GitRepo.name }}
     type: GitRepo
     configuration:
-      path: {{ .Values.Resource1.path }} # <-- PREREQ: Fork current github repository to your github organization and mention fullpath of your forked Repository
+      path: {{ .Values.GitRepo.path }} # <-- PREREQ: Fork current github repository to your github organization and mention fullpath of your forked Repository
       gitProvider: {{ .Values.GitProviderInt }}
       files:
          # To ensure that only file changes in this sub-directoty triggers a run
-        include: {{ .Values.Resource1.include }}
+        include: {{ .Values.GitRepo.files.include }}
         
-  - name: {{ .Values.Resource2.name }}
+  - name: {{ .Values.BuildInfo.name }}
     type: BuildInfo
     configuration:
       sourceArtifactory: {{ .Values.ArtifactoryInt }}
-      buildName: {{ .Values.Resource2.name }}
+      buildName: {{ .Values.BuildInfo.buildName}}
       buildNumber: 1
 
 pipelines:
-  - name: {{ .Values.Pipelines.name }}
+  - name: {{ .Values.Pipeline.name }}
     steps:
-      - name: {{ .Values.Step1.name }}
+      - name: {{ .Values.MvnBuild.name }}
         type: MvnBuild
         configuration:
-          sourceLocation: {{ .Values.Step1.sourceLocation }}
+          sourceLocation: {{ .Values.MvnBuild.sourceLocation }}
           mvnCommand: clean install -ntp
           resolverSnapshotRepo: libs-snapshot-virtual
           resolverReleaseRepo: libs-staging-virtual # <-- PREREQ: Create 3 maven repositories: libs-staging-local (type LOCAL), libs-staging-remote (type REMOTE) and libs-staging-virtual(type VIRTUAL). Have libs-staging-virtual aggregate the local and remote, in that order.  
           deployerSnapshotRepo: libs-demo-snapshot-local
           deployerReleaseRepo: libs-demo-release-local
           inputResources:
-            - name: {{ .Values.Resource1.name }}
+            - name: {{ .Values.GitRepo.name }}
           integrations:
             - name: {{ .Values.ArtifactoryInt }}
           runtime:
@@ -42,30 +42,34 @@ pipelines:
           onStart:
             - javac -version
             - mvn --version
+          onComplete:
+            - ls -lR
+            - add_run_files $res_demo_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/java-backend/target/backend-1.0.0.jar myfile
 
-      - name: {{ .Values.Step2.name }}
+      - name: {{ .Values.DockerBuild.name }}
         type: DockerBuild
         configuration:
           affinityGroup: {{ .Values.affinityGroup }}   
-          dockerFileLocation: {{ .Values.Step2.dockerFileLocation }}  
-          dockerFileName: {{ .Values.Step2.dockerFileName }}
-          dockerImageName: {{ .Values.Step2.dockerImageName }}
+          dockerFileLocation: {{ .Values.DockerBuild.dockerFileLocation }}  
+          dockerFileName: {{ .Values.DockerBuild.dockerFileName }}
+          dockerImageName: {{ .Values.DockerBuild.dockerImageName }}
           dockerImageTag: '${run_number}'
           integrations:
             - name: {{ .Values.ArtifactoryInt }}
           inputResources:
-            - name: {{ .Values.Resource1.name }}
+            - name: {{ .Values.GitRepo.name }}
               trigger: false
-          outputResources:
-            - name: {{ .Values.Step2.outputResources }}
           inputSteps:
-            - name: {{ .Values.Step1.name }}
+            - name: {{ .Values.MvnBuild.name }}
         execution:
+          onStart:
+             - restore_run_files myfile $res_demo_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/docker/server.jar
+             - ls -lR
           onComplete:
             - echo $step_env_var2
             - echo "Running $pipeline_name | $step_name on node ID $step_node_id"
       
-      - name: {{ .Values.Step3.name }}
+      - name: {{ .Values.DockerPush.name }}
         type: DockerPush
         configuration:
           affinityGroup: {{ .Values.affinityGroup }}
@@ -75,6 +79,6 @@ pipelines:
           integrations:
             - name: {{ .Values.GitProviderInt }}
           inputSteps:
-            - name: {{ .Values.Step2.name }}
+            - name: {{ .Values.DockerBuild.name }}
           outputResources:
-            - name: {{ .Values.Resource2.name }}
+            - name: {{ .Values.BuildInfo.name }}

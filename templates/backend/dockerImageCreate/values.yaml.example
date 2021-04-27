@@ -1,26 +1,23 @@
-Resource1 :
+GitRepo:
   name : Name of your GitHub Resource
   path : Path to GitHub Repo
-  gitProvider : Name of the Git Provider Integration
-  include : Files to be included
-Resource2 :
+  files:
+    include : Files to be included
+BuildInfo:
   name : Name for your build Info Resource
   buildName : Name for your build info
-  sourceArtifactory : Name of the Artifactory Integration
 ArtifactoryInt : Integration Name of Artifactory
 GitProviderInt : Integration Name of Git Provider
 affinityGroup: Name of the Affinity Group
 Pipelines:
-  name: Name for your pipeline
-Step1 :
-  name: Name of Step1
+  name: Name of your pipeline
+MvnBuild :
+  name: Name of the Maven Build Step
   sourceLocation : Path to your Maven Source Code
-Step2 :
-  name: Name of Step2
+DockerBuild:
+  name: Name of the DockerBuild Step
   dockerFileLocation: Location of Dockerfile in Source Repo
-  dockerFileName : Name of Dockerfile
+  dockerFileName : Name of your Dockerfile
   dockerImageName: Name of your Docker Image
-  outputResourceName: Name of your Output Resource
-Step3 :
-  name: Name of Step3
-  outputResourceName : Name of the Output Resource
+DockerPush:
+  name: Name of the DockerPush Step
