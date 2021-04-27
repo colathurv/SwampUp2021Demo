@@ -6,7 +6,7 @@ resources:
       gitProvider: {{ .Values.GitProviderInt }}
       files:
          # To ensure that only file changes in this sub-directoty triggers a run
-        include: {{ .Values.GitRepo.files.include }}
+        include: ^SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/java-backend/.*$
         
   - name: {{ .Values.BuildInfo.name }}
     type: BuildInfo
@@ -21,7 +21,7 @@ pipelines:
       - name: {{ .Values.MvnBuild.name }}
         type: MvnBuild
         configuration:
-          sourceLocation: {{ .Values.MvnBuild.sourceLocation }}
+          sourceLocation: SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/java-backend
           mvnCommand: clean install -ntp
           resolverSnapshotRepo: libs-snapshot-virtual
           resolverReleaseRepo: libs-staging-virtual # <-- PREREQ: Create 3 maven repositories: libs-staging-local (type LOCAL), libs-staging-remote (type REMOTE) and libs-staging-virtual(type VIRTUAL). Have libs-staging-virtual aggregate the local and remote, in that order.  
@@ -44,14 +44,14 @@ pipelines:
             - mvn --version
           onComplete:
             - ls -lR
-            - add_run_files $res_demo_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/java-backend/target/backend-1.0.0.jar myfile
+            - add_run_files $res_{{ .Values.GitRepo.name }}_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/java-backend/target/backend-1.0.0.jar myfile
 
       - name: {{ .Values.DockerBuild.name }}
         type: DockerBuild
         configuration:
-          affinityGroup: {{ .Values.affinityGroup }}   
-          dockerFileLocation: {{ .Values.DockerBuild.dockerFileLocation }}  
-          dockerFileName: {{ .Values.DockerBuild.dockerFileName }}
+          affinityGroup: bldGroup
+          dockerFileLocation: SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/docker
+          dockerFileName: BE-Dockerfile
           dockerImageName: {{ .Values.DockerBuild.dockerImageName }}
           dockerImageTag: '${run_number}'
           integrations:
@@ -63,7 +63,7 @@ pipelines:
             - name: {{ .Values.MvnBuild.name }}
         execution:
           onStart:
-             - restore_run_files myfile $res_demo_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/docker/server.jar
+             - restore_run_files myfile $res_{{ .Values.GitRepo.name }}_resourcePath/SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/docker/server.jar
              - ls -lR
           onComplete:
             - echo $step_env_var2
@@ -72,7 +72,7 @@ pipelines:
       - name: {{ .Values.DockerPush.name }}
         type: DockerPush
         configuration:
-          affinityGroup: {{ .Values.affinityGroup }}
+          affinityGroup: bldGroup
           targetRepository: docker-template-local
           forceXrayScan: false
           autoPublishBuildInfo: true
