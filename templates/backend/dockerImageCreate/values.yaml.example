@@ -6,7 +6,7 @@ BuildInfo:
   buildName : Name for your build info
 ArtifactoryInt : Integration Name of Artifactory
 GitProviderInt : Integration Name of Git Provider
-Pipelines:
+Pipeline:
   name: Name of your pipeline
 MvnBuild :
   name: Name of the Maven Build Step
