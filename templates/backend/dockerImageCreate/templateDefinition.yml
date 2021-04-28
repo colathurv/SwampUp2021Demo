@@ -77,7 +77,7 @@ pipelines:
           forceXrayScan: false
           autoPublishBuildInfo: true
           integrations:
-            - name: {{ .Values.GitProviderInt }}
+            - name: {{ .Values.ArtifactoryInt }}
           inputSteps:
             - name: {{ .Values.DockerBuild.name }}
           outputResources:
